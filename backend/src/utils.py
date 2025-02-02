@@ -6,7 +6,7 @@ import json
 from groq import Groq
 
 class PaperAnalyzer:
-    def __init__(self, api_key: str = None):
+    def __init__(self, api_key: str):
         """Initialize with Groq API"""
         self.client = Groq(api_key=api_key)
         print("✅ Connected to Groq API")
