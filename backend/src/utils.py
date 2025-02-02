@@ -75,30 +75,29 @@ class PaperAnalyzer:
         """Create a structured synopsis from the analyzed papers"""
         print("📝 Generating Research Synopsis...")
         
-        # Analyze papers once and store result
         self.paper_analyses = self.analyze_papers(papers)
         research_topic = papers[0]['Title'].lower()
         sections = {}
         
         # Generate title
         print("📄 Generating Title...")
-        title_prompt = f"Generate a formal academic title for a research synopsis about {research_topic}."
-        sections['title'] = self.generate_response(title_prompt)
+        title_prompt = f"Generate a single line, short and concise academic title for research about {research_topic}. Do not include any explanation."
+        sections['title'] = self.generate_response(title_prompt).split('\n')[0]  # Take only the first line
         
         # Generate introduction
         print("📄 Generating Introduction...")
         intro_prompt = (
-            f"Write a comprehensive introduction paragraph (approximately 150 words) about {research_topic}. "
-            "Focus on: current challenges, limitations of existing methods, and the need "
-            "for better approaches. Keep it formal and academic."
+            f"Write a single comprehensive paragraph (200-250 words) about {research_topic}. "
+            "Focus on introducing the problem statement and current challenges in the field. "
+            "Keep it formal and academic."
         )
         sections['introduction'] = self.generate_response(intro_prompt)
         
         # Generate rationale
         print("📄 Generating Rationale...")
         rationale_prompt = (
-            f"Write a single focused paragraph (approximately 120 words) explaining why this research on {research_topic} "
-            "is important. Emphasize the advantages and potential impact of the proposed approach. "
+            f"Write a single focused paragraph (150-200 words) explaining why this research on {research_topic} "
+            "is important and required. Focus on the necessity and potential impact. "
             "Keep it concise and well-structured."
         )
         sections['rationale'] = self.generate_response(rationale_prompt)
@@ -106,65 +105,79 @@ class PaperAnalyzer:
         # Generate objectives
         print("📄 Generating Objectives...")
         objectives_prompt = (
-            f"List exactly 3 specific, measurable objectives for the research on {research_topic}. "
-            "Format as numbered list (1. 2. 3.). Each objective should start with 'To' and include specific "
-            "metrics or targets. Make them detailed and achievable."
+            f"List exactly 3 one-line, specific objectives for the {research_topic} project. "
+            "Format as numbered list (1. 2. 3.). Each objective should start with 'To' and describe "
+            "how you will approach the project. Make them clear and achievable."
         )
         sections['objectives'] = self.generate_response(objectives_prompt)
         
         # Generate literature review
         print("📄 Generating Literature Review...")
         lit_review_prompt = (
-            f"Write a comprehensive literature review (approximately 250 words) about {research_topic}. "
-            "Cover current approaches, methods being used, challenges, and recent advancements. "
-            "Write in flowing paragraphs without points or headings. Keep it academic and concise."
+            f"Write a literature review (350-400 words) about {research_topic} in 3-4 paragraphs. "
+            "Focus on analyzing previous research approaches, their methodologies, and limitations. "
+            "Write in flowing paragraphs without citations or references. "
+            "Keep it academic and concise, focusing on the approaches rather than specific papers."
         )
         sections['literature_review'] = self.generate_response(lit_review_prompt)
-        
-        # Generate methodology
-        print("📄 Generating Methodology...")
-        method_prompt = (
-            f"Write a detailed methodology section for {research_topic} with these components:\n"
-            "1. Data Collection (numbered points)\n"
-            "2. Data Preprocessing (numbered points)\n"
-            "3. Feature Extraction (numbered points)\n"
-            "4. Model Selection (numbered points)\n"
-            "5. Evaluation Methods (numbered points)\n"
-            "Make it technical and specific to the research topic."
-        )
-        sections['methodology'] = self.generate_response(method_prompt)
         
         # Generate feasibility study
         print("📄 Generating Feasibility Study...")
         feasibility_prompt = (
-            f"Write a detailed feasibility analysis (approximately 300 words) for {research_topic} covering:\n"
-            "1. Technical feasibility (available technologies and tools)\n"
-            "2. Operational feasibility (implementation and deployment)\n"
-            "3. Economic feasibility (cost-benefit analysis)\n"
-            "4. Schedule feasibility (time requirements)\n"
-            "Make it specific to the proposed research."
+            f"Analyze the feasibility of {research_topic} project in these 4 aspects:\n"
+            "I. Technology Feasibility\n"
+            "   1. Available technologies and their suitability\n"
+            "   2. Technical requirements and implementation\n"
+            "II. Financial Feasibility\n"
+            "   1. Cost considerations and budget requirements\n"
+            "   2. Return on investment analysis\n"
+            "III. Time Feasibility\n"
+            "   1. Project timeline and milestones\n"
+            "   2. Schedule management\n"
+            "IV. Resource Feasibility\n"
+            "   1. Required resources\n"
+            "   2. Resource availability and management\n"
+            "Provide a detailed analysis for each aspect without using bullet points. "
+            "End with a brief synthesis of the findings."
         )
         sections['feasibility'] = self.generate_response(feasibility_prompt)
+        
+        # Generate methodology
+        print("📄 Generating Methodology...")
+        method_prompt = (
+            f"Write a detailed methodology (450-500 words) for {research_topic} in 3-4 paragraphs. "
+            "Explain the complete approach including data collection, processing, implementation, "
+            "and evaluation methods. Make it technical and specific."
+        )
+        sections['methodology'] = self.generate_response(method_prompt)
         
         # Generate facilities required
         print("📄 Generating Facilities Required...")
         facilities_prompt = (
-            f"List all required facilities and resources for the {research_topic} project, including:\n"
-            "1. Hardware requirements\n"
-            "2. Software requirements\n"
-            "3. Data storage and processing facilities\n"
-            "4. Development and testing environment\n"
-            "5. Any specialized equipment or resources\n"
-            "Make it comprehensive and specific to the research requirements."
+            f"Write a comprehensive list (300-350 words) of technical facilities required for the {research_topic} project using this format:\n"
+            "I. Hardware Requirements\n"
+            "   1. List specific hardware items\n"
+            "   2. Include specifications\n"
+            "II. Software Requirements\n"
+            "   1. Development environments\n"
+            "   2. Frameworks and tools\n"
+            "III. Development Tools\n"
+            "   1. Testing and deployment tools\n"
+            "   2. Version control systems\n"
+            "IV. Specialized Equipment\n"
+            "   1. List specific equipment\n"
+            "   2. Include purpose and specifications\n"
+            "Use only Roman numerals for main categories and numbers for subcategories. "
+            "Avoid using bullet points, stars, or summary statements."
         )
         sections['facilities'] = self.generate_response(facilities_prompt)
         
         # Generate expected outcomes
         print("📄 Generating Outcomes...")
         outcomes_prompt = (
-            f"Write a single comprehensive paragraph (approximately 150 words) describing the expected outcomes "
-            f"of the {research_topic} research. Include empirical results, practical applications, and potential "
-            "impact. Keep it specific and measurable. Do not use any special formatting or bullet points."
+            f"Write a detailed section (300-350 words) on expected outcomes after completion of the {research_topic} project. "
+            "Include technical achievements, practical applications, and potential impact. "
+            "Make it specific and measurable."
         )
         sections['outcomes'] = self.generate_response(outcomes_prompt)
         
@@ -176,26 +189,20 @@ class PaperAnalyzer:
         
         try:
             with open(filename, 'w', encoding='utf-8') as f:
-                # Title
-                f.write("# " + synopsis.get('title', '') + "\n\n")
+                # Title only, no explanation
+                f.write("# " + synopsis.get('title', '').strip() + "\n\n")
                 f.write("---\n\n")
                 
-                # Introduction with sections
+                # Introduction section with subsections
                 f.write("# Introduction\n\n")
-                intro_text = synopsis.get('introduction', '')
-                paragraphs = intro_text.split('\n\n')
+                f.write(synopsis.get('introduction', '') + "\n\n")
                 
-                # First paragraph is the introduction
-                if paragraphs:
-                    f.write(paragraphs[0] + "\n\n")
+                # Rationale as a subsection
+                f.write("### Rationale\n\n")
+                f.write(synopsis.get('rationale', '') + "\n\n")
                 
-                # Add Rationale heading and content
-                f.write("## Rationale\n\n")
-                if len(paragraphs) > 1:
-                    f.write(paragraphs[1] + "\n\n")
-                
-                # Add Objectives with heading
-                f.write("## Objectives\n\n")
+                # Objectives as a subsection
+                f.write("### Objectives\n\n")
                 f.write(synopsis.get('objectives', '') + "\n\n")
                 
                 # Main Sections
@@ -208,13 +215,13 @@ class PaperAnalyzer:
                 }
                 
                 for title, content in main_sections.items():
-                    f.write(f"# {title}\n")
+                    f.write(f"# {title}\n\n")
                     f.write(content + "\n\n")
                 
                 # References at the end
                 f.write("# References\n\n")
                 for paper in self.paper_analyses:
-                    title = paper['Title']  # Note the capital T
+                    title = paper['Title']
                     authors = paper.get('Authors', '')
                     year = paper.get('Year', '')
                     url = paper.get('URL', '')
@@ -229,4 +236,4 @@ class PaperAnalyzer:
             
         except Exception as e:
             print(f"❌ Error saving synopsis: {str(e)}")
-            raise  # Re-raise the exception to see the full error
+            raise

@@ -24,53 +24,27 @@ class WordGenerator:
 
     def add_heading(self, text, level=1):
         """Add a heading with proper formatting"""
-        # Add extra space before main headings
-        if level == 1:
-            self.document.add_paragraph().add_run()
-            
         heading = self.document.add_heading('', level)
         run = heading.add_run(text)
         run.font.name = 'Times New Roman'
         run.font.size = Pt(18 if level == 1 else 14)
-        run.font.bold = (level == 1)  # Only main headings are bold
-        
-        # Adjust spacing
-        heading.space_after = Pt(16 if level == 1 else 12)
-        heading.space_before = Pt(24 if level == 1 else 18)
+        run.font.bold = True
+        heading.space_after = Pt(12)
         return heading
 
-    def add_paragraph(self, text, is_methodology_point=False):
+    def add_paragraph(self, text, indent=0):
         """Add a paragraph with proper formatting"""
         paragraph = self.document.add_paragraph()
-        run = paragraph.add_run(text.strip())  # Remove extra whitespace
+        run = paragraph.add_run(text)
         run.font.name = 'Times New Roman'
         run.font.size = Pt(12)
         run.font.bold = False
         
-        # Adjust indentation for methodology points
-        if is_methodology_point:
-            paragraph.paragraph_format.left_indent = Inches(0.5)
-            paragraph.paragraph_format.first_line_indent = Inches(-0.25)  # Hanging indent for numbers
+        if indent > 0:
+            paragraph.paragraph_format.left_indent = Inches(indent * 0.25)
         
-        # Consistent spacing
-        paragraph.paragraph_format.space_after = Pt(12)
-        paragraph.paragraph_format.space_before = Pt(0)  # No space before paragraphs
-        paragraph.paragraph_format.line_spacing = 1.5  # 1.5 line spacing
-        return paragraph
-
-    def add_reference(self, text):
-        """Add a reference with proper formatting"""
-        paragraph = self.document.add_paragraph()
-        run = paragraph.add_run(text.strip())
-        run.font.name = 'Times New Roman'
-        run.font.size = Pt(12)
-        run.font.bold = False
-        
-        # Hanging indent for references
-        paragraph.paragraph_format.left_indent = Inches(0.5)
-        paragraph.paragraph_format.first_line_indent = Inches(-0.5)
-        paragraph.paragraph_format.space_after = Pt(12)
-        paragraph.paragraph_format.line_spacing = 1.5
+        paragraph.paragraph_format.space_after = Pt(10)
+        paragraph.paragraph_format.line_spacing = 1.15
         return paragraph
 
     def markdown_to_word(self, md_file: str, docx_file: str):
@@ -91,33 +65,25 @@ class WordGenerator:
                     self.add_heading(text, 1)
                     current_section = text
                     
-                elif section.startswith('## '):  # Subheading
-                    text = section.replace('## ', '')
+                elif section.startswith('### '):  # Subheading
+                    text = section.replace('### ', '')
                     self.add_heading(text, 2)
                     
                 else:  # Normal text
-                    clean_text = section.replace('*', '').strip()
-                    
-                    if 'Methodology' in current_section:
-                        lines = clean_text.split('\n')
-                        for line in lines:
-                            if line.strip():
-                                is_point = any(line.strip().startswith(f"{i}.") for i in range(1, 10))
-                                self.add_paragraph(line, is_methodology_point=is_point)
-                    elif 'Expected Outcomes' in current_section:
-                        # Ensure Expected Outcomes text is not bold
-                        paragraph = self.document.add_paragraph()
-                        run = paragraph.add_run(clean_text)
-                        run.font.name = 'Times New Roman'
-                        run.font.size = Pt(12)
-                        run.font.bold = False
-                        paragraph.paragraph_format.space_after = Pt(12)
-                        paragraph.paragraph_format.space_before = Pt(0)
-                        paragraph.paragraph_format.line_spacing = 1.5
-                    elif 'References' in current_section:
-                        self.add_reference(clean_text)
-                    else:
-                        self.add_paragraph(clean_text)
+                    lines = section.split('\n')
+                    for line in lines:
+                        line = line.strip()
+                        if not line:
+                            continue
+                            
+                        # Handle Roman numerals
+                        if line.startswith('I.') or line.startswith('II.') or line.startswith('III.') or line.startswith('IV.'):
+                            self.add_paragraph(line, indent=0)
+                        # Handle numbered points
+                        elif line.startswith(('1.', '2.', '3.', '4.', '5.')):
+                            self.add_paragraph(line, indent=1)
+                        else:
+                            self.add_paragraph(line)
             
             self.document.save(docx_file)
             return True

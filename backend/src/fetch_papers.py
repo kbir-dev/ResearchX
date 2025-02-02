@@ -1,14 +1,19 @@
-from scholarly import scholarly
+import os
+import time
+import random
 import pandas as pd
 from typing import List, Dict
-import time
+from scholarly import scholarly
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def fetch_all_papers(query: str, max_results: int = 10) -> List[Dict]:
     """Fetch papers from Google Scholar"""
     papers = []
     
     try:
-        print(f"🔍 Fetching Google Scholar papers for query: {query}")
+        print(f"🔍 Fetching research papers for query: {query}")
         
         # Search Google Scholar
         search_query = scholarly.search_pubs(query)
@@ -32,16 +37,20 @@ def fetch_all_papers(query: str, max_results: int = 10) -> List[Dict]:
                 if paper_info['Abstract'] != 'N/A':
                     papers.append(paper_info)
                     count += 1
+                    print(f"✅ Found paper {count}/{max_results}")
                     
-                time.sleep(2)  # Be nice to Google Scholar
+                # Increase the random delay between requests to avoid blocking
+                time.sleep(random.uniform(5, 10))  # Increased delay
                 
             except StopIteration:
+                print("⚠️ No more papers found")
                 break
             except Exception as e:
                 print(f"⚠️ Error processing paper: {str(e)}")
+                time.sleep(random.uniform(5, 10))  # Longer delay on error
                 continue
         
-        print(f"✅ Found {len(papers)} papers on Google Scholar")
+        print(f"✅ Successfully found {len(papers)} papers on Google Scholar")
         
     except Exception as e:
         print(f"❌ Error fetching papers: {str(e)}")
@@ -51,6 +60,9 @@ def fetch_all_papers(query: str, max_results: int = 10) -> List[Dict]:
 def save_to_csv(papers: List[Dict], filename: str = "data/research_papers.csv"):
     """Save papers to CSV file"""
     try:
+        # Create data directory if it doesn't exist
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
+        
         df = pd.DataFrame(papers)
         df.to_csv(filename, index=False)
         print(f"✅ Research papers saved to {filename}")
