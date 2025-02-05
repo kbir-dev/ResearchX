@@ -62,13 +62,8 @@ async def fetch_papers(request: PaperRequest, db: Session = Depends(get_db)):
 @app.post("/analyze-papers/")
 async def analyze_papers(request: PaperRequest, db: Session = Depends(get_db)):
     """Analyze research papers and generate a synopsis."""
-    # Check if we have cached results
+    # Get papers from cache or fetch new ones
     cached_research = db.query(Research).filter(Research.query == request.query).first()
-    
-    if cached_research and cached_research.synopsis:
-        return {"synopsis": cached_research.synopsis}
-    
-    # If not cached or no synopsis, generate new synopsis
     papers = cached_research.papers if cached_research else fetch_all_papers(request.query, max_results=request.max_results)
     
     if not papers:
@@ -78,10 +73,11 @@ async def analyze_papers(request: PaperRequest, db: Session = Depends(get_db)):
     if not api_key:
         raise HTTPException(status_code=500, detail="GROQ_API_KEY not set in environment variables.")
     
+    # Always generate new synopsis
     analyzer = PaperAnalyzer(api_key)
     synopsis = analyzer.create_synopsis(papers)
     
-    # Save synopsis to database
+    # Update or create database entry with new synopsis
     if cached_research:
         cached_research.synopsis = synopsis
         cached_research.docx_path = analyzer.save_synopsis_as_docx(synopsis)

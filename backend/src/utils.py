@@ -41,19 +41,22 @@ class PaperAnalyzer:
     def generate_response(self, prompt: str) -> str:
         """Generate response using Groq API"""
         try:
+            # Add timestamp to ensure unique responses
+            timestamped_prompt = f"{prompt}\n\nGenerate a unique response. Current time: {time.time()}"
+            
             completion = self.client.chat.completions.create(
                 model="mixtral-8x7b-32768",
                 messages=[
                     {
                         "role": "system",
-                        "content": "You are a research assistant skilled in academic writing and analysis."
+                        "content": "You are a research assistant skilled in academic writing and analysis. Always provide unique, creative responses while maintaining academic standards."
                     },
                     {
                         "role": "user",
-                        "content": prompt
+                        "content": timestamped_prompt
                     }
                 ],
-                temperature=0.7,
+                temperature=0.8,  # Increased for more variation
                 max_tokens=1024,
                 top_p=1,
             )
