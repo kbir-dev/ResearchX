@@ -2,9 +2,23 @@ from sqlalchemy import create_engine, Column, String, Integer, DateTime, JSON
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
+import os
 
-# Create SQLite engine
-engine = create_engine('sqlite:///./research.db', connect_args={"check_same_thread": False})
+# Update database URL for production
+DATABASE_URL = os.getenv('DATABASE_URL', 'sqlite:///./research.db')
+
+# Modify database URL for PostgreSQL if needed
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+# Create engine with production settings
+engine = create_engine(
+    DATABASE_URL,
+    pool_size=5,
+    max_overflow=10,
+    pool_timeout=30,
+    pool_recycle=1800
+)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
