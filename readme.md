@@ -124,10 +124,6 @@ This project showcases the power of AI-assisted development:
 - **UI Design**: AI tools helped create the beautiful, responsive interface
 - **Documentation**: This README was crafted with AI assistance
 
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
 ## 🙏 Acknowledgments
 
 - Thanks to Anthropic's Claude for being an incredible development partner
