@@ -22,6 +22,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",  # Development
         "https://research-3xhvgilgw-kbir-devs-projects.vercel.app",  # Production
+        "https://research-f9q1hz88e-kbir-devs-projects.vercel.app"   # Also allow this domain
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -126,4 +127,9 @@ async def get_download_path(file_type: str, query: str, db: Session = Depends(ge
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {"status": "healthy", "timestamp": datetime.now().isoformat()} 
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("app:app", host="0.0.0.0", port=port, reload=True) 

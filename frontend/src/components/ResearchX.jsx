@@ -67,62 +67,43 @@ const ResearchX = () => {
       updateLoadingStep(0, true);
       updateLoadingStep(1, true);
 
-      const papersResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/fetch-papers/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: searchQuery,
-          max_results: 10
-        }),
-      });
-
-      // Update loading state for analysis
-      updateLoadingStep(2, true);
-      updateLoadingStep(1, false, true);
-
-      const papersData = await papersResponse.json();
-      setPapers(papersData.papers);
-
-      // Update loading state for synopsis generation
-      updateLoadingStep(3, true);
-      updateLoadingStep(2, false, true);
-
-      const synopsisResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/analyze-papers/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: searchQuery,
-          max_results: 10
-        }),
-      });
-
-      // Update final loading states
-      updateLoadingStep(4, true);
-      updateLoadingStep(5, true);
-
-      const synopsisData = await synopsisResponse.json();
-      setSynopsis(synopsisData.synopsis);
+      console.log('Making API call to:', `${import.meta.env.VITE_BACKEND_URL}/api/fetch-papers/`);
       
-    } catch (err) {
-      setError(err.message || 'An unexpected error occurred');
-      console.error('Error:', err);
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fetch-papers/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: searchQuery,
+          max_results: 10
+        }),
+      });
+      
+      console.log('API Response:', response);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('API Data:', data);
+      
+      setPapers(data.papers);
+      setLoadingSteps(steps => steps.map(step => ({ ...step, active: false, completed: true })));
+    } catch (error) {
+      console.error('Search error:', error);
+      setError(error.message);
+      setLoadingSteps(steps => steps.map(step => ({ ...step, active: false, completed: false })));
     } finally {
       setIsLoading(false);
-      // Reset loading steps
-      setLoadingSteps(steps =>
-        steps.map(step => ({ ...step, active: false, completed: false }))
-      );
     }
   };
 
   const handleDownloadCSV = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/download/csv/${encodeURIComponent(searchQuery)}`
+        `${import.meta.env.VITE_BACKEND_URL}/api/download/${encodeURIComponent('csv')}/${encodeURIComponent(searchQuery)}`
       );
 
       if (!response.ok) {
@@ -140,7 +121,7 @@ const ResearchX = () => {
   const handleDownloadWord = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/download/docx/${encodeURIComponent(searchQuery)}`
+        `${import.meta.env.VITE_BACKEND_URL}/api/download/${encodeURIComponent('docx')}/${encodeURIComponent(searchQuery)}`
       );
 
       if (!response.ok) {

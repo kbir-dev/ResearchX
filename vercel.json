@@ -4,10 +4,10 @@
     "rewrites": [
       {
         "source": "/api/:path*",
-        "destination": "https://researchx-api-dubx.onrender.com/api/:path*"
+        "destination": "https://researchx-api-dubx.onrender.com/:path*"
       },
       {
-        "source": "/(.*)",
+        "source": "/((?!api/.*).*)",
         "destination": "/index.html"
       }
     ],
