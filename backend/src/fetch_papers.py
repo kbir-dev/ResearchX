@@ -3,7 +3,7 @@ import time
 import random
 import pandas as pd
 from typing import List, Dict
-from scholarly import scholarly, ProxyGenerator
+from scholarly import scholarly
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -15,12 +15,8 @@ def fetch_all_papers(query: str, max_results: int = 10) -> List[Dict]:
     try:
         print(f"🔍 Starting search for: {query}")
         
-        # Set up proxy to avoid Google Scholar blocks
-        pg = ProxyGenerator()
-        success = pg.FreeProxies()
-        scholarly.use_proxy(pg)
-        
-        print("✅ Proxy configured")
+        # Configure scholarly without proxy
+        scholarly.use_proxy(None)
         
         # Search Google Scholar with timeout and retries
         search_query = scholarly.search_pubs(query)
@@ -79,5 +75,7 @@ def save_to_csv(papers: List[Dict], filename: str = "data/research_papers.csv"):
         df = pd.DataFrame(papers)
         df.to_csv(filename, index=False)
         print(f"✅ Research papers saved to {filename}")
+        return filename
     except Exception as e:
         print(f"❌ Error saving to CSV: {str(e)}")
+        return None

@@ -53,24 +53,30 @@ async def fetch_papers(request: PaperRequest, db: Session = Depends(get_db)):
         print(f"🔍 Fetching new papers for: {request.query}")
         papers = fetch_all_papers(request.query, max_results=request.max_results)
         
-        if not papers:
-            raise HTTPException(status_code=404, detail="No papers found for the given topic.")
+        if not papers or len(papers) == 0:
+            raise HTTPException(status_code=404, detail="No papers found for the given topic. Please try a different search query.")
         
         # Save to database
         csv_path = save_to_csv(papers)
-        new_research = Research(
-            query=request.query,
-            papers=papers,
-            csv_path=csv_path
-        )
-        db.add(new_research)
-        db.commit()
+        if csv_path:
+            new_research = Research(
+                query=request.query,
+                papers=papers,
+                csv_path=csv_path
+            )
+            db.add(new_research)
+            db.commit()
         
         return {"papers": papers}
         
+    except HTTPException as he:
+        raise he
     except Exception as e:
         print(f"❌ Error in fetch_papers endpoint: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(
+            status_code=500, 
+            detail="An error occurred while fetching papers. Please try again later."
+        )
 
 @app.post("/analyze-papers/")
 async def analyze_papers(request: PaperRequest, db: Session = Depends(get_db)):
