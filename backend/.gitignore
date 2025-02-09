@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.env
+
+# Database
+*.db
+research.db
+
+# Generated files
+data/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store 
