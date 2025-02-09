@@ -3,7 +3,7 @@ import time
 import random
 import pandas as pd
 from typing import List, Dict
-from scholarly import scholarly
+from scholarly import scholarly, ProxyGenerator
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -13,17 +13,26 @@ def fetch_all_papers(query: str, max_results: int = 10) -> List[Dict]:
     papers = []
     
     try:
-        print(f"🔍 Fetching research papers for query: {query}")
+        print(f"🔍 Starting search for: {query}")
         
-        # Search Google Scholar
+        # Set up proxy to avoid Google Scholar blocks
+        pg = ProxyGenerator()
+        success = pg.FreeProxies()
+        scholarly.use_proxy(pg)
+        
+        print("✅ Proxy configured")
+        
+        # Search Google Scholar with timeout and retries
         search_query = scholarly.search_pubs(query)
         count = 0
+        retries = 3
         
-        while count < max_results:
+        while count < max_results and retries > 0:
             try:
                 paper = next(search_query)
+                print(f"📄 Processing paper {count + 1}")
                 
-                # Extract paper info
+                # Extract paper info with error checking
                 paper_info = {
                     'Title': paper.get('bib', {}).get('title', 'N/A'),
                     'Abstract': paper.get('bib', {}).get('abstract', 'N/A'),
@@ -33,26 +42,31 @@ def fetch_all_papers(query: str, max_results: int = 10) -> List[Dict]:
                     'URL': paper.get('pub_url', 'N/A')
                 }
                 
-                # Only add papers with abstracts
                 if paper_info['Abstract'] != 'N/A':
                     papers.append(paper_info)
                     count += 1
-                    print(f"✅ Found paper {count}/{max_results}")
-                    
-                time.sleep(3)  # Increased delay
+                    print(f"✅ Added paper {count}/{max_results}")
+                
+                time.sleep(random.uniform(2, 4))  # Random delay
                 
             except StopIteration:
-                print("⚠️ No more papers found")
+                print("⚠️ No more papers available")
                 break
             except Exception as e:
                 print(f"⚠️ Error processing paper: {str(e)}")
-                time.sleep(3)  # Longer delay on error
-                continue
+                retries -= 1
+                time.sleep(5)  # Longer delay on error
+                if retries == 0:
+                    print("❌ Max retries reached")
+                    break
         
-        print(f"✅ Successfully found {len(papers)} papers on Google Scholar")
+        if papers:
+            print(f"✅ Successfully found {len(papers)} papers")
+        else:
+            print("❌ No papers found")
         
     except Exception as e:
-        print(f"❌ Error fetching papers: {str(e)}")
+        print(f"❌ Fatal error in fetch_papers: {str(e)}")
     
     return papers
 

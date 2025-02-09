@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 import os
 from dotenv import load_dotenv
 import json
+from datetime import datetime
 
 # Load environment variables
 load_dotenv()
@@ -37,30 +38,36 @@ class PaperRequest(BaseModel):
 @app.post("/fetch-papers/")
 async def fetch_papers(request: PaperRequest, db: Session = Depends(get_db)):
     """Fetch research papers based on a query."""
-    # Check if we have cached results
-    cached_research = db.query(Research).filter(Research.query == request.query).first()
-    
-    if cached_research:
-        return {"papers": cached_research.papers}
-    
-    # If not cached, fetch new papers
-    papers = fetch_all_papers(request.query, max_results=request.max_results)
-    if not papers:
-        raise HTTPException(status_code=404, detail="No papers found for the given topic.")
-    
-    # Save papers to CSV
-    csv_path = save_to_csv(papers)
-    
-    # Create new research entry
-    new_research = Research(
-        query=request.query,
-        papers=papers,
-        csv_path=csv_path
-    )
-    db.add(new_research)
-    db.commit()
-    
-    return {"papers": papers}
+    try:
+        # Check cache first
+        cached_research = db.query(Research).filter(Research.query == request.query).first()
+        
+        if cached_research and cached_research.papers:
+            print(f"✅ Found cached results for: {request.query}")
+            return {"papers": cached_research.papers}
+        
+        # Fetch new papers
+        print(f"🔍 Fetching new papers for: {request.query}")
+        papers = fetch_all_papers(request.query, max_results=request.max_results)
+        
+        if not papers:
+            raise HTTPException(status_code=404, detail="No papers found for the given topic.")
+        
+        # Save to database
+        csv_path = save_to_csv(papers)
+        new_research = Research(
+            query=request.query,
+            papers=papers,
+            csv_path=csv_path
+        )
+        db.add(new_research)
+        db.commit()
+        
+        return {"papers": papers}
+        
+    except Exception as e:
+        print(f"❌ Error in fetch_papers endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/analyze-papers/")
 async def analyze_papers(request: PaperRequest, db: Session = Depends(get_db)):
@@ -114,4 +121,9 @@ async def get_download_path(file_type: str, query: str, db: Session = Depends(ge
             raise HTTPException(status_code=404, detail="DOCX file not found")
         return {"path": research.docx_path}
     
-    raise HTTPException(status_code=400, detail="Invalid file type") 
+    raise HTTPException(status_code=400, detail="Invalid file type")
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()} 
