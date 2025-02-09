@@ -20,6 +20,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",  # Development
+        os.getenv('CORS_ORIGINS', '').split(','),  # Production
     ],
     allow_credentials=True,
     allow_methods=["*"],
