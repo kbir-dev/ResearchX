@@ -21,7 +21,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",  # Development
-        "https://research-3xhvgilgw-kbir-devs-projects.vercel.app",  # Production
+        "https://research-fdthxzkvf-kbir-devs-projects.vercel.app",  # Production
         "https://research-f9q1hz88e-kbir-devs-projects.vercel.app",  # Also allow this domain
         "https://researchx.vercel.app",  # Main domain
         "*"  # Allow all origins temporarily for debugging
