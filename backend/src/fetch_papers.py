@@ -15,30 +15,55 @@ def fetch_all_papers(query: str, max_results: int = 10) -> List[Dict]:
     try:
         print(f"🔍 Starting search for: {query}")
         
-        # Configure scholarly with a proxy generator for better reliability
+        # Configure scholarly with proxy generator
         pg = ProxyGenerator()
-        # Use either FreeProxies() or Tor() based on your needs
+        
+        # Try multiple proxy setup methods
+        proxy_success = False
+        
         try:
-            success = pg.Tor()  # Try using Tor first
-            if not success:
-                success = pg.FreeProxies()  # Fallback to free proxies
-                
-            if success:
+            # Try using free proxies
+            proxy_success = pg.FreeProxies()
+            if proxy_success:
                 scholarly.use_proxy(pg)
-                print("✅ Successfully configured proxy")
-            else:
-                print("⚠️ Unable to configure proxy, proceeding without proxy")
+                print("✅ Successfully configured free proxy")
+            
+            # If free proxies fail, try using a rotation of proxies
+            if not proxy_success:
+                proxy_success = pg.Random()
+                if proxy_success:
+                    scholarly.use_proxy(pg)
+                    print("✅ Successfully configured random proxy")
+            
+            # Last resort: try without proxy
+            if not proxy_success:
+                print("⚠️ Unable to configure proxy, attempting without proxy")
+                scholarly.use_proxy(None)
                 
         except Exception as e:
-            print(f"⚠️ Proxy configuration failed: {str(e)}, proceeding without proxy")
+            print(f"⚠️ Proxy configuration failed: {str(e)}, attempting without proxy")
+            scholarly.use_proxy(None)
+        
+        # Add delay before search to avoid rate limiting
+        time.sleep(random.uniform(1, 3))
         
         # Search Google Scholar with timeout and retries
-        try:
-            search_query = scholarly.search_pubs(query)
-            print("✅ Successfully initiated search query")
-        except Exception as e:
-            print(f"❌ Error initiating search query: {str(e)}")
-            raise
+        max_search_retries = 3
+        search_retry_count = 0
+        search_query = None
+        
+        while search_retry_count < max_search_retries and search_query is None:
+            try:
+                search_query = scholarly.search_pubs(query)
+                print("✅ Successfully initiated search query")
+            except Exception as e:
+                search_retry_count += 1
+                print(f"⚠️ Search attempt {search_retry_count} failed: {str(e)}")
+                if search_retry_count < max_search_retries:
+                    time.sleep(random.uniform(2, 5))  # Exponential backoff
+                else:
+                    print("❌ Max search retries reached")
+                    raise
         
         count = 0
         retries = 3
@@ -63,7 +88,7 @@ def fetch_all_papers(query: str, max_results: int = 10) -> List[Dict]:
                     count += 1
                     print(f"✅ Added paper {count}/{max_results}")
                 
-                time.sleep(random.uniform(2, 4))  # Random delay
+                time.sleep(random.uniform(2, 4))  # Random delay between papers
                 
             except StopIteration:
                 print("⚠️ No more papers available")
