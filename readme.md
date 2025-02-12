@@ -131,9 +131,3 @@ This project showcases the power of AI-assisted development:
 - The amazing open-source community for the tools and libraries used
 
 ---
-
-<div align="center">
-  Made with 💜 and AI
-  
-  [Report Bug](https://github.com/your-username/researchx/issues) · [Request Feature](https://github.com/your-username/researchx/issues)
-</div>
