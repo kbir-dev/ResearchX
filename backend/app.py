@@ -38,7 +38,7 @@ class PaperRequest(BaseModel):
     query: str
     max_results: int = 10
 
-@app.post("/fetch-papers/")
+@app.post("/api/fetch-papers/")
 async def fetch_papers(request: PaperRequest, db: Session = Depends(get_db)):
     """Fetch research papers based on a query."""
     try:
@@ -78,42 +78,49 @@ async def fetch_papers(request: PaperRequest, db: Session = Depends(get_db)):
             detail="An error occurred while fetching papers. Please try again later."
         )
 
-@app.post("/analyze-papers/")
+@app.post("/api/analyze-papers/")
 async def analyze_papers(request: PaperRequest, db: Session = Depends(get_db)):
     """Analyze research papers and generate a synopsis."""
-    # Get papers from cache or fetch new ones
-    cached_research = db.query(Research).filter(Research.query == request.query).first()
-    papers = cached_research.papers if cached_research else fetch_all_papers(request.query, max_results=request.max_results)
-    
-    if not papers:
-        raise HTTPException(status_code=404, detail="No papers found for the given topic.")
-    
-    api_key = os.getenv('GROQ_API_KEY')
-    if not api_key:
-        raise HTTPException(status_code=500, detail="GROQ_API_KEY not set in environment variables.")
-    
-    # Always generate new synopsis
-    analyzer = PaperAnalyzer(api_key)
-    synopsis = analyzer.create_synopsis(papers)
-    
-    # Update or create database entry with new synopsis
-    if cached_research:
-        cached_research.synopsis = synopsis
-        cached_research.docx_path = analyzer.save_synopsis_as_docx(synopsis)
-        db.commit()
-    else:
-        new_research = Research(
-            query=request.query,
-            papers=papers,
-            synopsis=synopsis,
-            docx_path=analyzer.save_synopsis_as_docx(synopsis)
+    try:
+        # Get papers from cache or fetch new ones
+        cached_research = db.query(Research).filter(Research.query == request.query).first()
+        papers = cached_research.papers if cached_research else fetch_all_papers(request.query, max_results=request.max_results)
+        
+        if not papers:
+            raise HTTPException(status_code=404, detail="No papers found for the given topic.")
+        
+        api_key = os.getenv('GROQ_API_KEY')
+        if not api_key:
+            raise HTTPException(status_code=500, detail="GROQ_API_KEY not set in environment variables.")
+        
+        # Always generate new synopsis
+        analyzer = PaperAnalyzer(api_key)
+        synopsis = analyzer.create_synopsis(papers)
+        
+        # Update or create database entry with new synopsis
+        if cached_research:
+            cached_research.synopsis = synopsis
+            cached_research.docx_path = analyzer.save_synopsis_as_docx(synopsis)
+            db.commit()
+        else:
+            new_research = Research(
+                query=request.query,
+                papers=papers,
+                synopsis=synopsis,
+                docx_path=analyzer.save_synopsis_as_docx(synopsis)
+            )
+            db.add(new_research)
+            db.commit()
+        
+        return {"synopsis": synopsis}
+    except Exception as e:
+        print(f"❌ Error in analyze_papers endpoint: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"An error occurred while analyzing papers: {str(e)}"
         )
-        db.add(new_research)
-        db.commit()
-    
-    return {"synopsis": synopsis}
 
-@app.get("/download/{file_type}/{query}")
+@app.get("/api/download/{file_type}/{query}")
 async def get_download_path(file_type: str, query: str, db: Session = Depends(get_db)):
     """Get the download path for CSV or DOCX file."""
     research = db.query(Research).filter(Research.query == query).first()

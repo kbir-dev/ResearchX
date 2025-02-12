@@ -67,9 +67,9 @@ const ResearchX = () => {
       updateLoadingStep(0, true);
       updateLoadingStep(1, true);
 
-      console.log('Making API call to:', `${import.meta.env.VITE_BACKEND_URL}/api/fetch-papers/`);
+      console.log('Making API call to:', `${import.meta.env.VITE_BACKEND_URL}/api/analyze-papers/`);
       
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fetch-papers/`, {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/analyze-papers/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
