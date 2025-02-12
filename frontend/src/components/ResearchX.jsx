@@ -67,9 +67,10 @@ const ResearchX = () => {
       updateLoadingStep(0, true);
       updateLoadingStep(1, true);
 
-      console.log('Making API call to:', `${import.meta.env.VITE_BACKEND_URL}/api/analyze-papers/`);
+      // First, fetch papers
+      console.log('Making API call to fetch papers:', `${import.meta.env.VITE_BACKEND_URL}/api/fetch-papers/`);
       
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/analyze-papers/`, {
+      const fetchResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fetch-papers/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -80,20 +81,53 @@ const ResearchX = () => {
         }),
       });
       
-      console.log('API Response:', response);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (!fetchResponse.ok) {
+        const errorData = await fetchResponse.json().catch(() => ({ detail: 'Failed to fetch papers' }));
+        throw new Error(errorData.detail || `HTTP error! status: ${fetchResponse.status}`);
       }
       
-      const data = await response.json();
-      console.log('API Data:', data);
+      const fetchData = await fetchResponse.json();
+      console.log('Fetch Papers Response:', fetchData);
       
-      setPapers(data.papers);
+      if (!fetchData.papers || !Array.isArray(fetchData.papers)) {
+        throw new Error('Invalid response format from server');
+      }
+      
+      setPapers(fetchData.papers);
+      
+      // Then, analyze papers
+      updateLoadingStep(2, true);
+      console.log('Making API call to analyze papers:', `${import.meta.env.VITE_BACKEND_URL}/api/analyze-papers/`);
+      
+      const analyzeResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/analyze-papers/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: searchQuery,
+          max_results: 10
+        }),
+      });
+      
+      if (!analyzeResponse.ok) {
+        const errorData = await analyzeResponse.json().catch(() => ({ detail: 'Failed to analyze papers' }));
+        throw new Error(errorData.detail || `HTTP error! status: ${analyzeResponse.status}`);
+      }
+      
+      const analyzeData = await analyzeResponse.json();
+      console.log('Analyze Papers Response:', analyzeData);
+      
+      if (!analyzeData.synopsis) {
+        throw new Error('No synopsis generated');
+      }
+      
+      setSynopsis(analyzeData.synopsis);
       setLoadingSteps(steps => steps.map(step => ({ ...step, active: false, completed: true })));
+      
     } catch (error) {
       console.error('Search error:', error);
-      setError(error.message);
+      setError(error.message || 'An unexpected error occurred');
       setLoadingSteps(steps => steps.map(step => ({ ...step, active: false, completed: false })));
     } finally {
       setIsLoading(false);
