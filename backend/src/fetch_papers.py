@@ -17,8 +17,20 @@ def fetch_all_papers(query: str, max_results: int = 10) -> List[Dict]:
         
         # Configure scholarly with a proxy generator for better reliability
         pg = ProxyGenerator()
-        success = pg.FreeProxies()
-        scholarly.use_proxy(pg)
+        # Use either FreeProxies() or Tor() based on your needs
+        try:
+            success = pg.Tor()  # Try using Tor first
+            if not success:
+                success = pg.FreeProxies()  # Fallback to free proxies
+                
+            if success:
+                scholarly.use_proxy(pg)
+                print("✅ Successfully configured proxy")
+            else:
+                print("⚠️ Unable to configure proxy, proceeding without proxy")
+                
+        except Exception as e:
+            print(f"⚠️ Proxy configuration failed: {str(e)}, proceeding without proxy")
         
         # Search Google Scholar with timeout and retries
         try:
@@ -71,7 +83,7 @@ def fetch_all_papers(query: str, max_results: int = 10) -> List[Dict]:
         
     except Exception as e:
         print(f"❌ Fatal error in fetch_papers: {str(e)}")
-        raise  # Re-raise the exception for proper error handling
+        raise
     
     return papers
 
