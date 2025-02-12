@@ -68,9 +68,9 @@ const ResearchX = () => {
       updateLoadingStep(1, true);
 
       // First, fetch papers
-      console.log('Making API call to fetch papers:', `${import.meta.env.VITE_BACKEND_URL}/api/fetch-papers/`);
+      console.log('Making API call to fetch papers:', `${import.meta.env.VITE_BACKEND_URL}/fetch-papers/`);
       
-      const fetchResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/fetch-papers/`, {
+      const fetchResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/fetch-papers/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -97,9 +97,9 @@ const ResearchX = () => {
       
       // Then, analyze papers
       updateLoadingStep(2, true);
-      console.log('Making API call to analyze papers:', `${import.meta.env.VITE_BACKEND_URL}/api/analyze-papers/`);
+      console.log('Making API call to analyze papers:', `${import.meta.env.VITE_BACKEND_URL}/analyze-papers/`);
       
-      const analyzeResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/analyze-papers/`, {
+      const analyzeResponse = await fetch(`${import.meta.env.VITE_BACKEND_URL}/analyze-papers/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -137,7 +137,7 @@ const ResearchX = () => {
   const handleDownloadCSV = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/download/${encodeURIComponent('csv')}/${encodeURIComponent(searchQuery)}`
+        `${import.meta.env.VITE_BACKEND_URL}/download/${encodeURIComponent('csv')}/${encodeURIComponent(searchQuery)}`
       );
 
       if (!response.ok) {
@@ -155,7 +155,7 @@ const ResearchX = () => {
   const handleDownloadWord = async () => {
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/download/${encodeURIComponent('docx')}/${encodeURIComponent(searchQuery)}`
+        `${import.meta.env.VITE_BACKEND_URL}/download/${encodeURIComponent('docx')}/${encodeURIComponent(searchQuery)}`
       );
 
       if (!response.ok) {
