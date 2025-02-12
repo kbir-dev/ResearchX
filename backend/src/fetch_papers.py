@@ -3,7 +3,7 @@ import time
 import random
 import pandas as pd
 from typing import List, Dict
-from scholarly import scholarly
+from scholarly import scholarly, ProxyGenerator
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -15,8 +15,19 @@ def fetch_all_papers(query: str, max_results: int = 10) -> List[Dict]:
     try:
         print(f"🔍 Starting search for: {query}")
         
+        # Configure scholarly with a proxy generator for better reliability
+        pg = ProxyGenerator()
+        success = pg.FreeProxies()
+        scholarly.use_proxy(pg)
+        
         # Search Google Scholar with timeout and retries
-        search_query = scholarly.search_pubs(query)
+        try:
+            search_query = scholarly.search_pubs(query)
+            print("✅ Successfully initiated search query")
+        except Exception as e:
+            print(f"❌ Error initiating search query: {str(e)}")
+            raise
+        
         count = 0
         retries = 3
         
@@ -60,6 +71,7 @@ def fetch_all_papers(query: str, max_results: int = 10) -> List[Dict]:
         
     except Exception as e:
         print(f"❌ Fatal error in fetch_papers: {str(e)}")
+        raise  # Re-raise the exception for proper error handling
     
     return papers
 

@@ -24,6 +24,7 @@ app.add_middleware(
         "https://research-fdthxzkvf-kbir-devs-projects.vercel.app",  # Production
         "https://research-f9q1hz88e-kbir-devs-projects.vercel.app",  # Also allow this domain
         "https://researchx.vercel.app",  # Main domain
+        "https://research-x-two.vercel.app",  # New Vercel domain
         "*"  # Allow all origins temporarily for debugging
     ],
     allow_credentials=True,
