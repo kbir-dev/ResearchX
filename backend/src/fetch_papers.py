@@ -15,9 +15,6 @@ def fetch_all_papers(query: str, max_results: int = 10) -> List[Dict]:
     try:
         print(f"🔍 Starting search for: {query}")
         
-        # Configure scholarly without proxy
-        scholarly.use_proxy(None)
-        
         # Search Google Scholar with timeout and retries
         search_query = scholarly.search_pubs(query)
         count = 0
